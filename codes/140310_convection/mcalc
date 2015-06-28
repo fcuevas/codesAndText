@@ -1,0 +1,28 @@
+#!/bin/bash
+# benutzt bc um die Kommandozeilen als Taschenrechner zu benutzen
+# zB sinus von 45 °:
+# :mcalc "s(45*pi/180)"
+
+if [ "$1" = "" ]
+then
+echo "mcalc 5*7"
+echo "mcalc 'sqrt(3*3)'"
+echo "... s() sin c() cos  a() arctan l()  ln"
+echo "... e()" 
+#echo "4*a(1)"| bc -l
+echo "..pi*5"
+echo "... pow(x,n)...tan(x)"
+else
+#pi=$(echo "scale=5; 4*a(1)" | bc -l)
+pi=$(echo "scale=5; 4*a(1)" | bc -l) 
+echo "pi=$pi 
+      define pow(x,n) {
+      return(e(l(x)*n))      
+       }
+      define tan(x){
+       return(s(x)/c(x))
+                   }
+       
+       scale=6;$1" | bc -l
+fi
+exit 0

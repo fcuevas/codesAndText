@@ -1,0 +1,53 @@
+Total length: 101 (m)
+
+Total heat loss calculated with TRM
+ HL: 3.443049 (kW)
+
+Wall absorber temperatures
+
+T initial: 109.162 (°C)
+T end: 291.608 (°C)
+
+*************************************************************************************************
+
+Curves fitting:
+
+*************************************************************************************************
+Fitting, curve (u0*DT + u1*DT^2), DT: Tabs - Tamb
+
+*************************************************************************************************
+
+Correlation coefficients
+
+-u0 -0.0224409527139 -u1 0.00109407191883
+ 
+Squares difference (W/m): 0.848266934645
+Sum squares differences (kW): 0.0856749603991
+
+Heat loss ColSim correlations
+
+Heat loss model 2 (DT), HL: 3.30800826093(kW)
+Heat loss model 2 (T), HL: 4.28942135279(kW)
+
+Heat loss model 3 (DT), HL: 7.25013387704(kW)
+Heat loss model 3 (T), HL: 8.7355598083(kW)
+
+*************************************************************************************************
+
+Fitting, curve (u0*DT + u1*DT^4), DT: Tabs - Tamb
+
+*************************************************************************************************
+
+Correlation coefficients
+-u0 0.109919108998 -u1 9.32340161074e-09
+ 
+Squares difference (W/m): 1.00883228032
+Sum squares differences (kW): 0.101892060313
+
+Heat loss ColSim correlations
+
+Heat loss model 1 (DT), HL: 3.33319176808(kW)
+Heat loss model 1 (T), HL: 4.38528907112(kW)
+
+Heat loss model 4 (DT), HL: 7.71744270141(kW)
+Heat loss model 4 (T), HL: 10.0465418772(kW)

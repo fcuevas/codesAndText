@@ -1,0 +1,112 @@
+#!/bin/sh
+#cd ${0%/*} || exit 1    # run from this directory
+dir1="/net/p/600/groupdrives/oe630/Aktuell/02_diss/11-Cuevas/programme/OpenFOAM"
+dir2=$PWD
+results=$dir2/convection
+
+Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+rm -rf $results
+mkdir $results
+
+
+
+for r3 in 0.035 0.0425 0.055 
+do
+  for clearance in 0.02 0.04 0.06
+  do
+
+  r4=`mcalc "$r3+$clearance"`
+
+
+     for tempAbs in 618 550 450
+     do
+     
+     
+       for decr in 192 100 150
+       do 
+         for mesh in 30 45 60 75
+         do
+       
+        cd $dir2/constant/polyMesh
+        rm -rf points boundary owner neighbour
+        make
+       ./receiver -r3 $r3 -r4 $r4 -mesh_x $mesh
+
+       cd ../..
+
+       blockMesh
+   
+       
+       tempGlass=`mcalc "$tempAbs-$decr"`
+
+       cat "$dir2/0/temp_dummy" | sed 's/^tempAbs.*/tempAbs '$tempAbs";"'/g' \
+				      | sed 's/^tempGlass.*/tempGlass '$tempGlass";"'/g' \
+				      > $dir2/0/temp
+
+
+       #-- Run on single processor
+     #  buoyantSimpleFoam
+       
+      # Decompose
+	#for i in bottomWater topAir heater leftSolid rightSolid
+	#do
+	  decomposePar  > log.decomposePar.$i 2>&1
+	#done
+
+	# Run
+	runParallel buoyantSimpleFoam 8
+
+	# Reconstruct
+	#for i in bottomWater topAir heater leftSolid rightSolid
+	#do
+	 reconstructPar -time 3000 > log.reconstructPar.$i2 >&1
+	#done
+       
+       
+       
+       wallHeatFlux > heat_rAbs"$r3"_rGl"$r4"_Tabs"$tempAbs"_Tsec"$tempGlass"_mesh"$mesh".dat
+       mv heat_rAbs"$r3"_rGl"$r4"_Tabs"$tempAbs"_Tsec"$tempGlass"_mesh"$mesh".dat $results       
+
+
+#        
+# 
+        ./Allclean
+       
+         done
+       
+       done
+       
+     done
+
+  done
+  
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ----------------------------------------------------------------- end-of-file

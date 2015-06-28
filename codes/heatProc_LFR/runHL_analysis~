@@ -1,0 +1,208 @@
+#!/bin/bash
+
+################################################################################
+### enter ColSim directory, directory of IAM-File and work directory         ###
+################################################################################
+
+
+_DEBUG="off"
+
+function DEBUG()
+{
+ [ "$_DEBUG" == "on" ] &&  $@
+}
+
+groupdrive_Dir="/net/p/600/groupdrives"
+if [ -d "$groupdrive_Dir" ]
+then
+echo ""
+else
+groupdrive_Dir="/net/p/600/groupdrive"
+fi
+
+res_file=HLanalysis.dat
+rm -rf $res_file *~
+
+
+sim_Dir=$PWD
+
+
+lengthReceiver=1000
+
+tempInit=300
+
+
+cat "$sim_Dir/HL_coeff.py"  | sed 's/^l_tube1 =.*/l_tube1 ='$lengthReceiver'/g' \
+                              | sed 's/^T_init =.*/T_init ='$tempInit'/g' \
+                              > HL_coeff.tmp
+  
+  
+DEBUG echo "Reading files and calculating heat loss" >> $res_file  
+
+mv HL_coeff.tmp HL_coeff_current.py
+
+chmod u+rwx HL_coeff_current.py
+                              
+python HL_coeff_current.py
+
+T_end=`grep 'T end (°C):' HL_results.dat | awk '{print $4}'`
+
+u0_4=`grep 'u0_4:' HL_results.dat | awk '{print $2}'`
+u1_4=`grep 'u1_4:' HL_results.dat | awk '{print $2}'`
+HL=`grep 'HL (kW):' HL_results.dat | awk '{print $3}'`
+HL_1=`grep 'HL_1 (kW):' HL_results.dat | awk '{print $3}'`
+diffHL_1=`grep 'DiffHL_1 (%):' HL_results.dat | awk '{print $3}'`
+HL_2=`grep 'HL_2 (kW):' HL_results.dat | awk '{print $3}'`
+diffHL_2=`grep 'DiffHL_2 (%):' HL_results.dat | awk '{print $3}'`
+HL_3=`grep 'HL_3 (kW):' HL_results.dat | awk '{print $3}'`
+diffHL_3=`grep 'DiffHL_3 (%):' HL_results.dat | awk '{print $3}'`
+HL_4=`grep 'HL_4 (kW):' HL_results.dat | awk '{print $3}'`
+diffHL_4=`grep 'DiffHL_4 (%):' HL_results.dat | awk '{print $3}'`
+
+u0_2=`grep 'u0_2:' HL_results.dat | awk '{print $2}'`
+u1_2=`grep 'u1_2:' HL_results.dat | awk '{print $2}'`
+
+DEBUG echo "**************************************************************************" >> $res_file
+DEBUG echo coefficients >> $res_file
+DEBUG echo u0_2 $u0_2 >> $res_file
+DEBUG echo u1_2 $u1_2 >> $res_file
+DEBUG echo u0_4 $u0_4 >> $res_file
+DEBUG echo u1_4 $u1_4 >> $res_file
+DEBUG echo " " >> $res_file
+
+DEBUG echo "**************************************************************************" >> $res_file
+
+DEBUG echo "Base case, detailed HL calculation using TRM. HL coefficients generated for this length, calculation of HL Colsim's modes 1-4 " >> $res_file
+printf "\nlength(m) T_init(°C) T_end(°C) HL_TRM(kW) HL_model1(kW) DiffHL_1 HL_model2(kW) DiffHL_2 HL_model3(kW) DiffHL_3 HL_model4(kW) DiffHL_4\n" >> $res_file
+
+printf " %2.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f"  $lengthReceiver $tempInit $T_end $HL $HL_1 $diffHL_1 $HL_2 $diffHL_2 $HL_3 $diffHL_3 $HL_4 $diffHL_4 >> $res_file
+
+printf "\n\n***************************************************************************************************************\n" >> $res_file
+
+cat "$sim_Dir/runTRM_HL.py"  | sed 's/^u0_2 =.*/u0_2 ='$u0_2'/g' \
+                             | sed 's/^u1_2 =.*/u1_2 ='$u1_2'/g' \
+                              | sed 's/^u0_4 =.*/u0_4 ='$u0_4'/g' \
+                              | sed 's/^u1_4 =.*/u1_4 ='$u1_4'/g' \
+                              | sed 's/^T_init =.*/T_init ='$tempInit'/g' \
+                              > runTRM_HL.tmp
+                              
+                             
+                              chmod u+rwx runTRM_HL.tmp
+
+printf "\nDetailed HL calculation given length. Calculation of HL Colsim's modes 1-4 \n" >> $res_file
+
+printf "length(m) T_init(°C) T_end(°C) HL_TRM(kW) HL_model1(kW) DiffHL_1 HL_model2(kW) DiffHL_2 HL_model3(kW) DiffHL_3 HL_model4(kW) DiffHL_4\n" >> $res_file                      
+                              
+for lenRec in 600 400 200 100 50 20 10 5                              
+do      
+
+        
+        
+
+cat "$sim_Dir/runTRM_HL.tmp"  | sed 's/^l_tube1 =.*/l_tube1 ='$lenRec'/g' \
+                            | sed 's/^T_init =.*/T_init ='$tempInit'/g' \
+                             > runTRM_HL2.tmp
+        
+        mv runTRM_HL2.tmp runTRM_HL_current.py
+
+        chmod u+rwx runTRM_HL_current.py
+                              
+        python runTRM_HL_current.py
+        
+        HL=`grep 'HL (kW):' HL_results.dat | awk '{print $3}'`
+	HL_1=`grep 'HL_1 (kW):' HL_results.dat | awk '{print $3}'`
+	diffHL_1=`grep 'DiffHL_1 (%):' HL_results.dat | awk '{print $3}'`
+	HL_2=`grep 'HL_2 (kW):' HL_results.dat | awk '{print $3}'`
+	diffHL_2=`grep 'DiffHL_2 (%):' HL_results.dat | awk '{print $3}'`
+	HL_3=`grep 'HL_3 (kW):' HL_results.dat | awk '{print $3}'`
+	diffHL_3=`grep 'DiffHL_3 (%):' HL_results.dat | awk '{print $3}'`
+	HL_4=`grep 'HL_4 (kW):' HL_results.dat | awk '{print $3}'`
+	diffHL_4=`grep 'DiffHL_4 (%):' HL_results.dat | awk '{print $3}'`
+        T_end=`grep 'T end (°C):' HL_results.dat | awk '{print $4}'`
+printf " %2.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f\n"  $lenRec $tempInit $T_end $HL $HL_1 $diffHL_1 $HL_2 $diffHL_2 $HL_3 $diffHL_3 $HL_4 $diffHL_4 >> $res_file
+        
+done
+
+printf "\n\n***************************************************************************************************************\n" >> $res_file
+
+
+printf "\nDetailed HL calculation given number of divisions. Calculation of HL Colsim's modes 1-4\n " >> $res_file
+   
+
+
+
+
+
+for nDiv in 2 4 10 20 #50 100
+do
+
+printf "\n\n***************************************************************************************************************\n" >> $res_file
+
+HL_tot=0
+HL_tot1=0
+HL_tot2=0
+HL_tot3=0
+HL_tot4=0
+
+i=1
+split=`mcalc "$lengthReceiver/$nDiv"`
+totLength=$split
+T_end=$tempInit
+
+printf "\nBegin calculation T_init %1.f  " $T_end >> $res_file
+printf "Segment %s    " $i    >> $res_file      
+printf "Divisions %s    " $nDiv >> $res_file
+printf "Length %1.f   \n " $split >> $res_file
+printf "\nnDiv LengthRec(m) T_end(°C) HL_TRM(kW) HL_model1(kW) DiffHL_1 HL_model2(kW) DiffHL_2 HL_model3(kW) DiffHL_3 HL_model4(kW) DiffHL_4\n" >> $res_file       
+#echo $totLength $lengthReceiver
+  while [ "$i" -le "$nDiv" ]
+  do
+          
+          cat "$sim_Dir/runTRM_HL.tmp"  | sed 's/^l_tube1 =.*/l_tube1 ='$split'/g' \
+                                        | sed 's/^T_init =.*/T_init ='$T_end'/g' \
+                                        > runTRM_HL3.tmp
+                             
+          mv runTRM_HL3.tmp runTRM_HL_current.py
+
+          chmod u+rwx runTRM_HL_current.py   
+          
+          python runTRM_HL_current.py
+        
+        HL=`grep 'HL (kW):' HL_results.dat | awk '{print $3}'`
+	HL_1=`grep 'HL_1 (kW):' HL_results.dat | awk '{print $3}'`
+	diffHL_1=`grep 'DiffHL_1 (%):' HL_results.dat | awk '{print $3}'`
+	HL_2=`grep 'HL_2 (kW):' HL_results.dat | awk '{print $3}'`
+	diffHL_2=`grep 'DiffHL_2 (%):' HL_results.dat | awk '{print $3}'`
+	HL_3=`grep 'HL_3 (kW):' HL_results.dat | awk '{print $3}'`
+	diffHL_3=`grep 'DiffHL_3 (%):' HL_results.dat | awk '{print $3}'`
+	HL_4=`grep 'HL_4 (kW):' HL_results.dat | awk '{print $3}'`
+	diffHL_4=`grep 'DiffHL_4 (%):' HL_results.dat | awk '{print $3}'`
+        
+        T_end=`grep 'Tf end (°C):' HL_results.dat | awk '{print $4}'`
+        
+        HL_tot=`mcalc "$HL_tot+$HL"`
+        HL_tot1=`mcalc "$HL_tot1+$HL_1"`
+        HL_tot2=`mcalc "$HL_tot2+$HL_2"`
+        HL_tot3=`mcalc "$HL_tot3+$HL_3"`
+        HL_tot4=`mcalc "$HL_tot4+$HL_4"`
+        
+        
+printf " %2.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %12.1f %12.1f %10.1f\n" $i $totLength $T_end  $HL $HL_1 $diffHL_1 $HL_2 $diffHL_2 $HL_3 $diffHL_3 $HL_4 $diffHL_4 >> $res_file
+        i=`mcalc "$i+1"`  
+        totLength=`mcalc "$totLength+$split"`
+
+    
+  done  
+  
+  diffHL_1=`mcalc "($HL_tot1-$HL_tot)/$HL_tot*100"`
+  diffHL_2=`mcalc "($HL_tot2-$HL_tot)/$HL_tot*100"`
+  diffHL_3=`mcalc "($HL_tot3-$HL_tot)/$HL_tot*100"`
+  diffHL_4=`mcalc "($HL_tot4-$HL_tot)/$HL_tot*100"`
+
+printf "\n End of calculation "  >> $res_file
+printf " \n %2.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %10.1f %12.1f %12.1f %10.1f\n" $nDiv $split $T_end $HL_tot $HL_tot1 $diffHL_1 $HL_tot2 $diffHL_2 $HL_tot3 $diffHL_3 $HL_tot4 $diffHL_4  >> $res_file
+
+printf "\n\n***************************************************************************************************************\n" >> $res_file
+done
+
+                              

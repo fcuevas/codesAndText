@@ -1,0 +1,80 @@
+#!/bin/sh
+#cd ${0%/*} || exit 1    # run from this directory
+
+results_file=results.dat
+
+printf "         r_int      r_ext      T_int      T_ext      nCells      qConv_int      qConv_ext" > $results_file
+printf " " > results_temp.dat
+
+caseNumber=1
+
+for r3 in 0.035 0.0425 0.055 
+do
+  for clearance in 0.02 0.04 0.06
+  do
+
+  r4=`./mcalc "$r3+$clearance"`
+
+
+     for tempAbs in 618 550 450
+     do
+     
+     
+       for decr in 192 100 150
+       do 
+       
+       tempGlass=`./mcalc "$tempAbs-$decr"`
+       
+         for mesh in 30 45 60 75
+         do
+
+       printf "\n case"$caseNumber" %10.5f %10.5f %10.1f %10.1f %10.1f" $r3 $r4 $tempAbs $tempGlass $mesh >> $results_file
+       
+        for region in  glass #tube
+     #    for region in  tube
+         do        
+         
+         
+         var_1=`grep $region heat_rAbs"$r3"_rGl"$r4"_Tabs"$tempAbs"_Tsec"$tempGlass"_mesh"$mesh".dat | awk '{print $2}'`
+         printf "%10.5f" $var_1 > results_temp.dat
+         
+         var_1=`grep " " results_temp.dat | awk '{print $2}'`
+         var=`./mcalc "$var_1*100"`
+
+         printf "%10.3f" $var >> $results_file
+      
+       
+         done
+         
+         for region in  tube     
+         do        
+         
+         
+         var_1=`grep $region heat_rAbs"$r3"_rGl"$r4"_Tabs"$tempAbs"_Tsec"$tempGlass"_mesh"$mesh".dat | awk '{print $2}'`
+         printf "%10.5f" $var_1 > results_temp.dat
+         
+         var_1=`grep " " results_temp.dat | awk '{print $2}'`
+         var=`./mcalc "$var_1*100"`
+
+         printf "%10.3f" $var >> $results_file
+      
+       
+         done 
+         
+         
+         
+         caseNumber=`./mcalc "$caseNumber+1"`
+         
+         done   
+        
+       done
+       
+     done
+
+  done
+  
+done
+
+
+
+# ----------------------------------------------------------------- end-of-file

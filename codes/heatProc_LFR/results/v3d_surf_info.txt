@@ -1,0 +1,8 @@
+1 1 1 50
+# Above are the combined surface numbers for secondary, glass plate and absorber
+# The fourth value is '2*ly3D' = 50.0 [m], the total length of the receiver.
+# Secondary mirror surfaces: total = 24, combined = 1
+#                     Ratio: total/combined = 24.0
+# Bottom glass plate surfaces = 1
+# Absorber tube surfaces: total = 24, combined = 1
+#                  Ratio: total/combined = 48.0
